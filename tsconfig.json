@@ -3,6 +3,9 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "paths": {
+      "@projecthub/ui": ["./dist/projecthub/ui"]
+    },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
@@ -19,5 +22,13 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true
   },
-  "files": []
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/projecthub/ui/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/projecthub/ui/tsconfig.spec.json"
+    }
+  ]
 }
