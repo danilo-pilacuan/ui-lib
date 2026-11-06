@@ -3,5 +3,12 @@
   "dest": "../../../dist/projecthub/ui",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": [
+    {
+      "glob": "**/_theme.scss",
+      "input": "src/lib/styles",
+      "output": "styles"
+    }
+  ]
 }

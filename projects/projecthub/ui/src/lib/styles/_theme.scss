@@ -1,0 +1,24 @@
+/*
+ * Tema compartido de @projecthub/ui (docs/funcionalidades.md 9.2).
+ * Los componentes usan var(--ph-*) con fallbacks, asi funcionan solos y el
+ * host puede redefinir las variables en :root para ajustar la marca.
+ * Importar desde styles globales del host: @use '@projecthub/ui/styles/theme';
+ */
+:root {
+  --ph-color-primary: #1976d2;
+  --ph-color-primary-soft: #e3f0fb;
+  --ph-color-surface: #ffffff;
+  --ph-color-border: #d9d9d9;
+  --ph-color-text: #222222;
+  --ph-color-text-soft: #666666;
+  --ph-color-ok: #2e7d32;
+  --ph-color-ok-soft: #e6f2e7;
+  --ph-color-warn: #b26a00;
+  --ph-color-warn-soft: #fdf0dd;
+  --ph-color-danger: #c62828;
+  --ph-color-danger-soft: #fbe4e4;
+  --ph-color-neutral-soft: #f1f3f5;
+  --ph-radius: 6px;
+  --ph-font-size-sm: 0.8125rem;
+  --ph-font-size-md: 0.9375rem;
+}
