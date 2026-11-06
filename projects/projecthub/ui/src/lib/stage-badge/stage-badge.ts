@@ -56,6 +56,7 @@ const ETIQUETAS_ESTADO: Record<EstadoProyecto, string> = {
         font-size: var(--ph-font-size-sm, 0.8125rem);
         font-weight: 600;
         white-space: nowrap;
+        font-family: var(--ph-font-body, Roboto, sans-serif);
       }
       .ph-badge--soft {
         background: var(--ph-color-neutral-soft, #f1f3f5);

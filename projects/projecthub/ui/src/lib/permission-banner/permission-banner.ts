@@ -42,6 +42,7 @@ export type PermissionBannerVariante = 'info' | 'warn' | 'danger';
         border-radius: var(--ph-radius, 6px);
         border: 1px solid var(--ph-color-border, #d9d9d9);
         font-size: var(--ph-font-size-md, 0.9375rem);
+        font-family: var(--ph-font-body, Roboto, sans-serif);
       }
       .ph-banner--info {
         background: var(--ph-color-primary-soft, #e3f0fb);

@@ -4,6 +4,8 @@
   "peerDependencies": {
     "@angular/common": "^22.2.0",
     "@angular/core": "^22.2.0",
+    "@angular/material": "^22.2.6",
+    "@angular/cdk": "^22.2.6",
     "@projecthub/shared": "*"
   },
   "dependencies": {
@@ -16,6 +18,7 @@
       "default": "./index.mjs"
     },
     "./styles/theme": {
+      "sass": "./styles/_theme.scss",
       "default": "./styles/_theme.scss"
     }
   }

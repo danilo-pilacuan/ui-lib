@@ -1,9 +1,23 @@
 /*
- * Tema compartido de @projecthub/ui (docs/funcionalidades.md 9.2).
- * Los componentes usan var(--ph-*) con fallbacks, asi funcionan solos y el
- * host puede redefinir las variables en :root para ajustar la marca.
+ * Tema compartido de @projecthub/ui (docs/funcionalidades.md 9.2, 12.2).
+ * Base: Angular Material 22 (DEC-005). La capa visual sigue siendo tokens
+ * var(--ph-*) con fallbacks, asi los componentes funcionan solos y el host
+ * puede redefinir las variables en :root para ajustar la marca.
  * Importar desde styles globales del host: @use '@projecthub/ui/styles/theme';
  */
+@use '@angular/material' as mat;
+
+html {
+  // Paleta M3 de Material derivada del azul corporativo (#1976d2).
+  @include mat.theme(
+    (
+      color: mat.$azure-palette,
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
 :root {
   --ph-color-primary: #1976d2;
   --ph-color-primary-soft: #e3f0fb;

@@ -8,6 +8,7 @@ import {
   input,
   TemplateRef,
 } from '@angular/core';
+import { MatTableModule } from '@angular/material/table';
 import { NgTemplateOutlet } from '@angular/common';
 
 /** Columna declarativa de ph-data-table. cell va en una ng-template. */
@@ -25,52 +26,55 @@ export interface DataTableFila {
 }
 
 /*
- * Tabla generica declarativa (9.2): columnas con ph-data-table-column y
- * ng-template #cell; cubre cargando / vacio (DoD de vistas).
+ * Tabla generica declarativa (9.2) construida sobre mat-table (12.3, DEC-005).
+ * Columnas con ph-data-table-column y ng-template #cell; cubre cargando /
+ * vacio (DoD de vistas). La API publica (inputs y selectores) no cambia.
  */
 @Component({
   selector: 'ph-data-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="ph-table-wrap">
-      <table class="ph-table">
-        <thead>
-          <tr>
-            @for (col of columnas(); track col.name()) {
-              <th [style.width]="col.width() ?? null" [class.ph-th-right]="col.align() === 'right'">
-                {{ col.header() }}
-              </th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (fila of filas(); track filaTrackBy($index, fila)) {
-            <tr>
-              @for (col of columnas(); track col.name()) {
-                <td [class.ph-td-right]="col.align() === 'right'">
-                  @if (col.cell(); as tpl) {
-                    <ng-container
-                      [ngTemplateOutlet]="tpl"
-                      [ngTemplateOutletContext]="{ $implicit: fila }"
-                    />
-                  } @else {
-                    {{ mostrar(fila, col.name()) }}
-                  }
-                </td>
+      <table mat-table [dataSource]="filas()" class="ph-table">
+        @for (col of columnas(); track col.name()) {
+          <ng-container [matColumnDef]="col.name()">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              [style.width]="col.width() ?? null"
+              [class.ph-th-right]="col.align() === 'right'"
+            >
+              {{ col.header() }}
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let fila"
+              [class.ph-td-right]="col.align() === 'right'"
+            >
+              @if (col.cell(); as tpl) {
+                <ng-container
+                  [ngTemplateOutlet]="tpl"
+                  [ngTemplateOutletContext]="{ $implicit: fila }"
+                />
+              } @else {
+                {{ mostrar(fila, col.name()) }}
               }
-            </tr>
-          } @empty {
-            <tr>
-              <td class="ph-table-empty" [attr.colspan]="columnas().length">
-                @if (cargando()) {
-                  Cargando...
-                } @else {
-                  {{ textoVacio() }}
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
+            </td>
+          </ng-container>
+        }
+
+        <tr mat-header-row *matHeaderRowDef="columnasVisibles()"></tr>
+        <tr mat-row *matRowDef="let fila; columns: columnasVisibles()"></tr>
+
+        <tr *matNoDataRow>
+          <td class="ph-table-empty" [attr.colspan]="columnasVisibles().length">
+            @if (cargando()) {
+              Cargando...
+            } @else {
+              {{ textoVacio() }}
+            }
+          </td>
+        </tr>
       </table>
     </div>
   `,
@@ -84,8 +88,6 @@ export interface DataTableFila {
       }
       .ph-table {
         width: 100%;
-        border-collapse: collapse;
-        font-size: var(--ph-font-size-md, 0.9375rem);
       }
       th {
         text-align: left;
@@ -94,11 +96,13 @@ export interface DataTableFila {
         border-bottom: 1px solid var(--ph-color-border, #d9d9d9);
         font-weight: 600;
         white-space: nowrap;
+        color: var(--ph-color-text, #222);
       }
       td {
         padding: 0.55rem 0.75rem;
         border-bottom: 1px solid var(--ph-color-border, #d9d9d9);
         vertical-align: middle;
+        color: var(--ph-color-text, #222);
       }
       tbody tr:last-child td {
         border-bottom: none;
@@ -107,6 +111,9 @@ export interface DataTableFila {
       .ph-td-right {
         text-align: right;
       }
+      .ph-table-empty-row td {
+        border-bottom: none;
+      }
       .ph-table-empty {
         text-align: center;
         color: var(--ph-color-text-soft, #666);
@@ -114,7 +121,7 @@ export interface DataTableFila {
       }
     `,
   ],
-  imports: [NgTemplateOutlet],
+  imports: [MatTableModule, NgTemplateOutlet],
 })
 export class DataTable {
   readonly filas = input.required<readonly DataTableFila[]>();
@@ -127,6 +134,8 @@ export class DataTable {
   protected readonly columnas = computed(() =>
     this._columnas().filter((c: DataTableColumn | undefined) => c !== undefined),
   );
+
+  protected readonly columnasVisibles = computed(() => this.columnas().map((c) => c.name()));
 
   private readonly _columnas = contentChildren(DataTableColumn);
 

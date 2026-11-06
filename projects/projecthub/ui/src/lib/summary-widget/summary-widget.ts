@@ -1,34 +1,41 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 export type SummaryTendencia = 'positiva' | 'negativa' | 'neutra';
 
 /*
- * Tarjeta de resumen para dashboard y reportes (9.2). Es la base visual de
- * ProjectSummaryWidget (8.5) y de los KPI de mfe-reports (7.x).
+ * Tarjeta de resumen para dashboard y reportes (9.2), sobre mat-card
+ * (12.3, DEC-005). Es la base visual de ProjectSummaryWidget (8.5) y de los
+ * KPI de mfe-reports (7.x). API publica (inputs) sin cambios.
  */
 @Component({
   selector: 'ph-summary-widget',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="ph-summary" [class]="claseTendencia()">
-      <span class="ph-summary-titulo">{{ titulo() }}</span>
-      <span class="ph-summary-valor">{{ valor() }}</span>
-      @if (detalle(); as d) {
-        <span class="ph-summary-detalle">{{ d }}</span>
-      }
-    </div>
+    <mat-card class="ph-summary" [class]="claseTendencia()" appearance="outlined">
+      <mat-card-content class="ph-summary-body">
+        <span class="ph-summary-titulo">{{ titulo() }}</span>
+        <span class="ph-summary-valor">{{ valor() }}</span>
+        @if (detalle(); as d) {
+          <span class="ph-summary-detalle">{{ d }}</span>
+        }
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [
     `
       .ph-summary {
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-        padding: 0.85rem 1rem;
         border: 1px solid var(--ph-color-border, #d9d9d9);
         border-radius: var(--ph-radius, 6px);
         background: var(--ph-color-surface, #fff);
         border-left: 4px solid var(--ph-color-border, #d9d9d9);
+        font-family: var(--ph-font-body, Roboto, sans-serif);
+      }
+      .ph-summary-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.85rem 1rem;
       }
       .ph-summary-titulo {
         font-size: var(--ph-font-size-sm, 0.8125rem);
@@ -57,6 +64,7 @@ export type SummaryTendencia = 'positiva' | 'negativa' | 'neutra';
       }
     `,
   ],
+  imports: [MatCardModule],
 })
 export class SummaryWidget {
   readonly titulo = input.required<string>();
