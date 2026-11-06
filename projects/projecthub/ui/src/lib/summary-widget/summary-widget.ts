@@ -1,22 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { CardModule } from 'primeng/card';
 
 export type SummaryTendencia = 'positiva' | 'negativa' | 'neutra';
 
 /*
- * Tarjeta de resumen para dashboard y reportes (9.2). Es la base visual de
+ * Tarjeta de resumen para dashboard y reportes (9.2), construida sobre
+ * p-card unstyled (DEC-004, 12.3): el contenedor/tarjeta lo da PrimeNG
+ * (sin header, no pinta zona de titulo); el aspecto lo fijan las clases
+ * ph-summary* con tokens de diseno. Es la base visual de
  * ProjectSummaryWidget (8.5) y de los KPI de mfe-reports (7.x).
  */
 @Component({
   selector: 'ph-summary-widget',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="ph-summary" [class]="claseTendencia()">
-      <span class="ph-summary-titulo">{{ titulo() }}</span>
-      <span class="ph-summary-valor">{{ valor() }}</span>
-      @if (detalle(); as d) {
-        <span class="ph-summary-detalle">{{ d }}</span>
-      }
-    </div>
+    <p-card [unstyled]="true">
+      <div class="ph-summary" [class]="claseTendencia()">
+        <span class="ph-summary-titulo">{{ titulo() }}</span>
+        <span class="ph-summary-valor">{{ valor() }}</span>
+        @if (detalle(); as d) {
+          <span class="ph-summary-detalle">{{ d }}</span>
+        }
+      </div>
+    </p-card>
   `,
   styles: [
     `
@@ -57,6 +63,7 @@ export type SummaryTendencia = 'positiva' | 'negativa' | 'neutra';
       }
     `,
   ],
+  imports: [CardModule],
 })
 export class SummaryWidget {
   readonly titulo = input.required<string>();

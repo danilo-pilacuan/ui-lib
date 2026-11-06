@@ -4,6 +4,10 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * Campo de formulario con etiqueta, pista y error (9.2).
  * El control (input/select/textarea) va en ng-content; el estado de error lo
  * marca el consumidor con error() para no acoplar la lib a ReactiveForms.
+ * No envuelve pInputText/pSelect: los remotes no importan PrimeNG (DEC-004),
+ * proyectarian el control y exigirian el modulo en cada app. El aspecto del
+ * control nativo proyectado se alinea con el tema PrimeNG (Aura) usando sus
+ * tokens de diseno --p-* con los fallbacks ph-* como respaldo.
  */
 @Component({
   selector: 'ph-form-field',
@@ -34,37 +38,43 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       .ph-field-label {
         font-size: var(--ph-font-size-sm, 0.8125rem);
         font-weight: 600;
-        color: var(--ph-color-text, #222);
+        color: var(--p-text-color, var(--ph-color-text, #222));
       }
       .ph-field-req {
-        color: var(--ph-color-danger, #c62828);
+        color: var(--p-form-field-invalid-color, var(--ph-color-danger, #c62828));
       }
       .ph-field-control :is(input, select, textarea) {
         width: 100%;
         box-sizing: border-box;
-        padding: 0.45rem 0.6rem;
-        border: 1px solid var(--ph-color-border, #d9d9d9);
-        border-radius: var(--ph-radius, 6px);
+        padding: var(--p-form-field-padding-y, var(--ph-input-padding-y, 0.45rem))
+          var(--p-form-field-padding-x, var(--ph-input-padding-x, 0.6rem));
+        border: 1px solid
+          var(--p-form-field-border-color, var(--ph-color-border, #d9d9d9));
+        border-radius: var(--p-form-field-border-radius, var(--ph-radius, 6px));
         font: inherit;
-        font-size: var(--ph-font-size-md, 0.9375rem);
-        background: var(--ph-color-surface, #fff);
-        color: var(--ph-color-text, #222);
+        font-size: var(--p-form-field-font-size, var(--ph-font-size-md, 0.9375rem));
+        background: var(--p-form-field-background, var(--ph-color-surface, #fff));
+        color: var(--p-form-field-color, var(--ph-color-text, #222));
       }
       .ph-field-control :is(input, select, textarea):focus {
-        outline: 2px solid var(--ph-color-primary, #1976d2);
+        outline: 2px solid
+          var(--p-form-field-focus-border-color, var(--ph-color-primary, #1976d2));
         outline-offset: 1px;
       }
       .ph-field-control :is(input, select, textarea):disabled {
-        background: var(--ph-color-neutral-soft, #f1f3f5);
-        color: var(--ph-color-text-soft, #666);
+        background: var(
+          --p-form-field-disabled-background,
+          var(--ph-color-neutral-soft, #f1f3f5)
+        );
+        color: var(--p-form-field-disabled-color, var(--ph-color-text-soft, #666));
       }
       .ph-field-hint {
         font-size: var(--ph-font-size-sm, 0.8125rem);
-        color: var(--ph-color-text-soft, #666);
+        color: var(--p-text-muted-color, var(--ph-color-text-soft, #666));
       }
       .ph-field-error {
         font-size: var(--ph-font-size-sm, 0.8125rem);
-        color: var(--ph-color-danger, #c62828);
+        color: var(--p-form-field-invalid-color, var(--ph-color-danger, #c62828));
         font-weight: 600;
       }
     `,

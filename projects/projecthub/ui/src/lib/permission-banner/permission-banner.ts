@@ -1,14 +1,25 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { MessageModule } from 'primeng/message';
+import type { MessageSeverity } from 'primeng/types/message';
 
 export type PermissionBannerVariante = 'info' | 'warn' | 'danger';
 
+const SEVERIDADES: Record<PermissionBannerVariante, MessageSeverity> = {
+  info: 'info',
+  warn: 'warn',
+  danger: 'error',
+};
+
 /*
- * Banner para vista sin permisos o accion no permitida (1.7 del alcance).
- * Texto en espanol, variante visual por severidad.
+ * Banner para vista sin permisos o accion no permitida (1.7 del alcance),
+ * construido sobre p-message unstyled (DEC-004, 12.3): el rol de aviso lo da
+ * PrimeNG (danger se mapea a error, MessageSeverity no tiene 'danger'); el
+ * aspecto lo fijan las clases ph-banner--* con tokens de diseno.
  */
 @Component({
   selector: 'ph-permission-banner',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MessageModule],
   template: `
     <div class="ph-banner" [class]="clase()" role="status">
       <span class="ph-banner-icon" aria-hidden="true">
@@ -24,12 +35,14 @@ export type PermissionBannerVariante = 'info' | 'warn' | 'danger';
           }
         }
       </span>
-      <span class="ph-banner-texto">
-        <strong>{{ titulo() }}</strong>
-        @if (detalle(); as d) {
-          <span class="ph-banner-detalle">{{ d }}</span>
-        }
-      </span>
+      <p-message [severity]="severidad()" [unstyled]="true">
+        <span class="ph-banner-texto">
+          <strong>{{ titulo() }}</strong>
+          @if (detalle(); as d) {
+            <span class="ph-banner-detalle">{{ d }}</span>
+          }
+        </span>
+      </p-message>
     </div>
   `,
   styles: [
@@ -79,4 +92,6 @@ export class PermissionBanner {
   readonly variante = input<PermissionBannerVariante>('warn');
 
   protected readonly clase = computed(() => `ph-banner--${this.variante()}`);
+
+  protected readonly severidad = computed(() => SEVERIDADES[this.variante()]);
 }

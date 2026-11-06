@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { TagModule } from 'primeng/tag';
+import type { TagSeverity } from 'primeng/types/tag';
 import { EstadoProyecto, EtapaCicloVida } from '@projecthub/shared';
 
 export type StageBadgeKind = 'etapa' | 'estado';
@@ -21,6 +23,24 @@ const CLASES_ESTADO: Record<EstadoProyecto, string> = {
   Cerrado: 'ph-badge--neutral',
 };
 
+const SEVERIDADES_ETAPA: Record<string, TagSeverity> = {
+  Planteamiento: 'secondary',
+  Iniciativa: 'info',
+  PoC: 'info',
+  ValidacionPoC: 'info',
+  Planeacion: 'info',
+  Contratos: 'warn',
+  Ejecucion: 'contrast',
+  Operacion: 'success',
+  Cierre: 'secondary',
+};
+
+const SEVERIDADES_ESTADO: Record<string, TagSeverity> = {
+  Activo: 'success',
+  Cancelado: 'danger',
+  Cerrado: 'secondary',
+};
+
 const ETIQUETAS_ETAPA: Record<EtapaCicloVida, string> = {
   Planteamiento: 'Planteamiento',
   Iniciativa: 'Iniciativa',
@@ -40,13 +60,20 @@ const ETIQUETAS_ESTADO: Record<EstadoProyecto, string> = {
 };
 
 /*
- * Badge de etapa del ciclo de vida o de estado del proyecto (9.2).
+ * Badge de etapa del ciclo de vida o de estado del proyecto (9.2),
+ * construido sobre p-tag unstyled (DEC-004, 12.3): la etiqueta y el rol la
+ * da PrimeNG; el color exacto lo fija la clase ph-badge--* con tokens.
  * Son conceptos distintos (AGENTS.md terminologia canonica): se elige con kind.
  */
 @Component({
   selector: 'ph-stage-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span class="ph-badge" [class]="clase()">{{ etiqueta() }}</span>`,
+  imports: [TagModule],
+  template: `
+    <span class="ph-badge" [class]="clase()">
+      <p-tag [value]="etiqueta()" [severity]="severidad()" [unstyled]="true" />
+    </span>
+  `,
   styles: [
     `
       .ph-badge {
@@ -97,6 +124,13 @@ export class StageBadge {
       return CLASES_ESTADO[this.valor() as EstadoProyecto] ?? 'ph-badge--soft';
     }
     return CLASES_ETAPA[this.valor() as EtapaCicloVida] ?? 'ph-badge--soft';
+  });
+
+  protected readonly severidad = computed<TagSeverity>(() => {
+    if (this.kind() === 'estado') {
+      return SEVERIDADES_ESTADO[this.valor() as string] ?? 'secondary';
+    }
+    return SEVERIDADES_ETAPA[this.valor() as string] ?? 'secondary';
   });
 
   protected readonly etiqueta = computed(() => {
