@@ -59,4 +59,47 @@ describe('GanttChart', () => {
     const marcas = fixture.debugElement.queryAll(By.css('.ph-gantt-marca'));
     expect(marcas.length).toBeGreaterThan(0);
   });
+
+  it('dibuja flecha de dependencia en la fila del dependiente', async () => {
+    const fixture = await render([
+      etapa({ id: 'e1', avance: 100, fechaFin: '2025-01-31' }),
+      etapa({ id: 'e2', dependencias: ['e1'], fechaInicio: '2025-02-01', fechaFin: '2025-03-15' }),
+    ]);
+    const svgs = fixture.debugElement.queryAll(By.css('.ph-gantt-fila .ph-gantt-flechas'));
+    expect(svgs.length).toBe(1);
+    const polilines = svgs[0].queryAll(By.css('polyline'));
+    expect(polilines.length).toBe(1);
+    const puntos = polilines[0].attributes['points'];
+    expect(puntos).toContain('41.0958904109589,0 41.0958904109589,1');
+    expect(puntos).toContain('41.0958904109589,1 42.465753424657535,1');
+    expect(puntos).toContain('42.465753424657535,1 40.965753424657535,0.7');
+  });
+
+  it('marca bloqueada la flecha cuando el prerequisito no esta al 100', async () => {
+    const fixture = await render([
+      etapa({ id: 'e1', avance: 40 }),
+      etapa({ id: 'e2', dependencias: ['e1'], fechaInicio: '2025-02-01', fechaFin: '2025-03-15' }),
+    ]);
+    const polilines = fixture.debugElement.queryAll(By.css('.ph-gantt-flecha--bloqueada'));
+    expect(polilines.length).toBe(1);
+  });
+
+  it('dibuja stub vertical en las filas intermedias cuando la dependencia cruza filas', async () => {
+    const fixture = await render([
+      etapa({ id: 'e1', avance: 100, fechaFin: '2025-01-31' }),
+      etapa({ id: 'e2', fechaInicio: '2025-02-01', fechaFin: '2025-03-15' }),
+      etapa({
+        id: 'e3',
+        dependencias: ['e1'],
+        fechaInicio: '2025-06-01',
+        fechaFin: '2025-07-15',
+      }),
+    ]);
+    // Fila e2 (intermedia) lleva el stub vertical; fila e3 el tramo horizontal.
+    const filas = fixture.debugElement.queryAll(By.css('.ph-gantt-fila'));
+    const stubEnFilaIntermedia = filas[1].queryAll(By.css('polyline'));
+    const horizontalEnFilaDestino = filas[2].queryAll(By.css('polyline'));
+    expect(stubEnFilaIntermedia.length).toBe(1);
+    expect(horizontalEnFilaDestino.length).toBe(1);
+  });
 });

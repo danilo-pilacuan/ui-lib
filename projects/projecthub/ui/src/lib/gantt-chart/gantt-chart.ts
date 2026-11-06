@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { EtapaTrabajo } from '@projecthub/shared';
 import { IntlFormat } from '../intl-format';
+import { dependenciasGantt } from '@projecthub/shared';
 
 export interface GanttBarra {
   etapa: EtapaTrabajo;
@@ -11,6 +12,14 @@ export interface GanttBarra {
   inicioPct: number;
   /** Ancho de la barra, en % del eje. */
   anchoPct: number;
+}
+
+/** Flecha de dependencia dibujada dentro de la pista de una fila. */
+export interface GanttFlecha {
+  /** Puntos SVG en unidades de porcentaje del eje (x) y píxeles de fila (y). */
+  readonly puntos: string;
+  /** True si el prerequisito aun no esta al 100%. */
+  readonly bloqueada: boolean;
 }
 
 const DIA_MS = 24 * 60 * 60 * 1000;
@@ -55,6 +64,16 @@ const DIA_MS = 24 * 60 * 60 * 1000;
                   <div class="ph-gantt-avance" [style.width.%]="barra.avance"></div>
                   <span class="ph-gantt-pct">{{ barra.avance }}%</span>
                 </div>
+                @if (flechasPorFila().get(barra.etapa.id); as flechas) {
+                  <svg class="ph-gantt-flechas" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
+                    @for (flecha of flechas; track $index) {
+                      <polyline
+                        [attr.points]="flecha.puntos"
+                        [class.ph-gantt-flecha--bloqueada]="flecha.bloqueada"
+                      />
+                    }
+                  </svg>
+                }
               </div>
             </div>
           }
@@ -140,6 +159,23 @@ const DIA_MS = 24 * 60 * 60 * 1000;
         color: var(--ph-color-text, #222);
         mix-blend-mode: multiply;
       }
+      .ph-gantt-flechas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: visible;
+      }
+      .ph-gantt-flechas polyline {
+        fill: none;
+        stroke: var(--ph-color-primary, #1976d2);
+        stroke-width: 1.5px;
+      }
+      .ph-gantt-flechas .ph-gantt-flecha--bloqueada {
+        stroke: var(--ph-color-danger, #c62828);
+        stroke-dasharray: 5px 4px;
+      }
     `,
   ],
 })
@@ -197,6 +233,43 @@ export class GanttChart {
   protected readonly ariaLabel = computed(
     () => `Diagrama Gantt con ${this.barras().length} etapa(s) de trabajo`,
   );
+
+  /**
+   * Flechas de dependencia (6.5), agrupadas por fila. Cada segmento vive en el
+   * SVG de una fila con viewBox 0 0 100 2 (centro vertical = 1): el tramo
+   * horizontal sale del borde derecho del prerequisito, baja al centro de la
+   * pista y llega a la entrada de la barra dependiente con punta de flecha;
+   * los stubs verticales que cruzan filas se dibujan en la fila siguiente.
+   */
+  protected readonly flechasPorFila = computed(() => {
+    const barras = this.barras();
+    const mapa = new Map<string, GanttFlecha[]>();
+    for (const { prerequisitoId, dependienteId } of dependenciasGantt(barras.map((b) => b.etapa))) {
+      const pre = barras.find((b) => b.etapa.id === prerequisitoId);
+      const dep = barras.find((b) => b.etapa.id === dependienteId);
+      if (!pre || !dep) {
+        continue;
+      }
+      const salidaX = Math.min(100, pre.inicioPct + pre.anchoPct);
+      const entradaX = Math.max(0, dep.inicioPct);
+      const bloqueada = pre.avance < 100;
+      const lista = mapa.get(dependienteId) ?? [];
+      lista.push({
+        puntos: `${salidaX},0 ${salidaX},1 ${entradaX},1 ${entradaX - 1.5},0.7 ${entradaX},1 ${entradaX - 1.5},1.3`,
+        bloqueada,
+      });
+      mapa.set(dependienteId, lista);
+      const indicePre = barras.indexOf(pre);
+      const indiceDep = barras.indexOf(dep);
+      for (let i = indicePre + 1; i < indiceDep; i++) {
+        const fila = barras[i];
+        const stubs = mapa.get(fila.etapa.id) ?? [];
+        stubs.push({ puntos: `${salidaX},0 ${salidaX},2`, bloqueada });
+        mapa.set(fila.etapa.id, stubs);
+      }
+    }
+    return mapa;
+  });
 
   protected tooltip(barra: GanttBarra): string {
     return `${barra.etapa.nombre}: ${this.intl.fecha(barra.inicio)} - ${this.intl.fecha(barra.fin)} | Avance ${barra.avance}%`;
