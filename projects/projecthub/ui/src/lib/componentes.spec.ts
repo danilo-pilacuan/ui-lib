@@ -1,19 +1,52 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { describe, expect, it } from 'vitest';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormField } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { FormField } from './form-field/form-field';
 import { PermissionBanner } from './permission-banner/permission-banner';
 import { SummaryWidget } from './summary-widget/summary-widget';
 import { IntlFormat } from './intl-format';
 
+// Hosts con control real: mat-form-field exige un MatFormFieldControl
+// proyectado (input con matInput o mat-select) en ngDevMode.
+@Component({
+  selector: 'spec-host-input',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormField, MatInputModule],
+  template: `
+    <ph-form-field label="Nombre" [requerido]="true" [error]="error" [pista]="pista">
+      <input matInput />
+    </ph-form-field>
+  `,
+})
+class HostInput {
+  error: string | null = null;
+  pista: string | null = null;
+}
+
+@Component({
+  selector: 'spec-host-select',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormField, MatSelectModule],
+  template: `
+    <ph-form-field label="Etapa">
+      <mat-select>
+        <mat-option value="a">A</mat-option>
+      </mat-select>
+    </ph-form-field>
+  `,
+})
+class HostSelect {}
+
 describe('FormField', () => {
   async function render(opciones: { error?: string | null; pista?: string | null } = {}) {
-    await TestBed.configureTestingModule({ imports: [FormField] }).compileComponents();
-    const fixture = TestBed.createComponent(FormField);
-    fixture.componentRef.setInput('label', 'Nombre');
-    fixture.componentRef.setInput('requerido', true);
-    fixture.componentRef.setInput('error', opciones.error ?? null);
-    fixture.componentRef.setInput('pista', opciones.pista ?? null);
+    await TestBed.configureTestingModule({ imports: [HostInput] }).compileComponents();
+    const fixture = TestBed.createComponent(HostInput);
+    fixture.componentInstance.error = opciones.error ?? null;
+    fixture.componentInstance.pista = opciones.pista ?? null;
     await fixture.whenStable();
     return fixture;
   }
@@ -34,6 +67,25 @@ describe('FormField', () => {
   it('muestra pista cuando no hay error', async () => {
     const fixture = await render({ pista: 'Max 100' });
     expect(fixture.debugElement.query(By.css('.ph-field-hint'))).toBeTruthy();
+  });
+
+  it('renderiza mat-form-field con el input proyectado como control', async () => {
+    const fixture = await render();
+    const mff = fixture.debugElement.query(By.css('mat-form-field'));
+    expect(mff).toBeTruthy();
+    expect(mff.nativeElement.classList).toContain('ph-field');
+    const input = fixture.debugElement.query(By.css('input[matinput]'));
+    expect(input).toBeTruthy();
+    const mffInstance = mff.injector.get(MatFormField as never) as { _control: unknown };
+    expect(mffInstance._control).toBeTruthy();
+  });
+
+  it('acepta mat-select como control proyectado', async () => {
+    await TestBed.configureTestingModule({ imports: [HostSelect] }).compileComponents();
+    const fixture = TestBed.createComponent(HostSelect);
+    await fixture.whenStable();
+    expect(fixture.debugElement.query(By.css('mat-select'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('.ph-field-label'))).toBeTruthy();
   });
 });
 
