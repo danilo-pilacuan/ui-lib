@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injectable, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
@@ -242,6 +242,7 @@ export class PromptDialog {
  * defecto coherentes (ancho, foco, restoreFocus). Devuelve el MatDialogRef;
  * usar afterClosed() para obtener DialogoResultado (null si se cancela).
  */
+@Injectable({ providedIn: 'root' })
 export class PromptDialogService {
   private readonly dialog = inject(MatDialog);
 
