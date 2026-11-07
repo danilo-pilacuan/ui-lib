@@ -1,14 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { describe, expect, it } from 'vitest';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { MatInputModule } from '@angular/material/input';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatFormField } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FormField } from './form-field/form-field';
 import { PermissionBanner } from './permission-banner/permission-banner';
 import { SummaryWidget } from './summary-widget/summary-widget';
 import { IntlFormat } from './intl-format';
+import { DialogoConfig, DialogoResultado, PromptDialog } from './prompt-dialog/prompt-dialog';
 
 // Hosts con control real: mat-form-field exige un MatFormFieldControl
 // proyectado (input con matInput o mat-select) en ngDevMode.
@@ -145,5 +147,133 @@ describe('IntlFormat', () => {
     const intl = TestBed.inject(IntlFormat);
     expect(intl.monto(null)).toBe('-');
     expect(intl.fecha(null)).toBe('-');
+  });
+});
+
+describe('PromptDialog', () => {
+  interface HostOpciones {
+    config: DialogoConfig;
+  }
+
+  @Component({
+    selector: 'spec-host-dialogo',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `<p>host</p>`,
+  })
+  class HostDialogo {
+    private readonly dialog = inject(MatDialog);
+    private readonly datos = inject(MAT_DIALOG_DATA) as HostOpciones;
+    resultado: DialogoResultado | undefined;
+
+    constructor() {
+      this.dialog
+        .open(PromptDialog, { data: this.datos.config, width: '26rem' })
+        .afterClosed()
+        .subscribe((r) => {
+          this.resultado = r;
+        });
+    }
+  }
+
+  function abrir(config: DialogoConfig) {
+    TestBed.overrideProvider(MAT_DIALOG_DATA, { useValue: { config } });
+    const fixture = TestBed.createComponent(HostDialogo);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function overlay(): HTMLElement {
+    return document.querySelector('.cdk-overlay-container') as HTMLElement;
+  }
+
+  function botonConfirmar(): HTMLButtonElement | undefined {
+    return Array.from(overlay()?.querySelectorAll<HTMLButtonElement>('button') ?? []).find((b) =>
+      b.classList.contains('ph-btn-confirmar'),
+    );
+  }
+
+  function botonPorTexto(texto: string): HTMLButtonElement | undefined {
+    return Array.from(overlay()?.querySelectorAll<HTMLButtonElement>('button') ?? []).find((b) =>
+      b.textContent?.includes(texto),
+    );
+  }
+
+  async function esperarCierre(): Promise<void> {
+    for (let i = 0; i < 50; i++) {
+      if (!overlay()?.querySelector('mat-dialog-container')) {
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 10));
+    }
+  }
+
+  beforeEach(() => {
+    overlay()?.remove();
+  });
+
+  it('muestra titulo, mensaje y boton de confirmacion', async () => {
+    const fixture = abrir({ titulo: 'Eliminar etapa', mensaje: 'Esta accion no se puede deshacer.' });
+    await fixture.whenStable();
+    expect(overlay().textContent).toContain('Eliminar etapa');
+    expect(overlay().textContent).toContain('Esta accion no se puede deshacer.');
+    expect(botonConfirmar()).toBeTruthy();
+  });
+
+  it('cierra con null al cancelar', async () => {
+    const fixture = abrir({ titulo: 'Confirmar', mensaje: 'Continuar?' });
+    await fixture.whenStable();
+    botonPorTexto('Cancelar')!.click();
+    await esperarCierre();
+    expect(fixture.componentInstance.resultado).toBeNull();
+  });
+
+  it('requiere los campos requeridos antes de confirmar', async () => {
+    const fixture = abrir({
+      titulo: 'Registrar avance',
+      campos: [{ nombre: 'porcentaje', etiqueta: 'Avance (%)', tipo: 'number', requerido: true }],
+    });
+    await fixture.whenStable();
+    const confirmar = botonConfirmar()!;
+    expect(confirmar.disabled).toBe(true);
+    confirmar.click();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.resultado).toBeUndefined();
+  });
+
+  it('recoge los valores de los campos al confirmar', async () => {
+    const fixture = abrir({
+      titulo: 'Registrar consumo',
+      campos: [
+        { nombre: 'concepto', etiqueta: 'Concepto', tipo: 'text', requerido: true },
+        { nombre: 'monto', etiqueta: 'Monto', tipo: 'number' },
+      ],
+    });
+    await fixture.whenStable();
+    const input = overlay().querySelector<HTMLInputElement>('input[type="text"]')!;
+    input.value = 'Materiales';
+    input.dispatchEvent(new Event('input'));
+    const numero = overlay().querySelector<HTMLInputElement>('input[type="number"]')!;
+    numero.value = '150000';
+    numero.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    botonConfirmar()!.click();
+    await esperarCierre();
+    expect(fixture.componentInstance.resultado).toEqual({ concepto: 'Materiales', monto: '150000' });
+  });
+
+  it('muestra error de rango para numero fuera de min/max', async () => {
+    const fixture = abrir({
+      titulo: 'Registrar avance',
+      campos: [{ nombre: 'porcentaje', etiqueta: 'Avance (%)', tipo: 'number', min: 0, max: 100 }],
+    });
+    await fixture.whenStable();
+    const numero = overlay().querySelector<HTMLInputElement>('input[type="number"]')!;
+    numero.value = '150';
+    numero.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    botonConfirmar()!.click();
+    await fixture.whenStable();
+    expect(overlay().textContent).toContain('valor mayor que 100');
+    expect(fixture.componentInstance.resultado).toBeUndefined();
   });
 });
