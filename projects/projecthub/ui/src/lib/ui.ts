@@ -5,4 +5,5 @@ export * from './permission-banner/permission-banner';
 export * from './gantt-chart/gantt-chart';
 export * from './prompt-dialog/prompt-dialog';
 export * from './summary-widget/summary-widget';
+export * from './section-nav/section-nav';
 export * from './intl-format';
