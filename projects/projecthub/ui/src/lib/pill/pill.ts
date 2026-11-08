@@ -4,8 +4,9 @@ export type PillTono = 'ok' | 'info' | 'warn' | 'danger' | 'neutral' | 'primario
 
 /**
  * Etiqueta pill reutilizable (estado de gate, estado de entregable, tipo de
- * registro de bitacora). Unifica los estilos .pill que antes se repetian en
- * cada pagina; el tono es un input y el texto es un input requerido.
+ * registro de bitacora, metadata de proyecto). Unifica los estilos .pill/.chip
+ * que antes se repetian en cada pagina; el tono es un input y el texto es un
+ * input requerido.
  */
 @Component({
   selector: 'ph-pill',
@@ -15,12 +16,15 @@ export type PillTono = 'ok' | 'info' | 'warn' | 'danger' | 'neutral' | 'primario
     `
       .ph-pill {
         display: inline-block;
-        padding: 0.05rem 0.5rem;
+        padding: 0.15rem 0.6rem;
         border-radius: 999px;
-        font-size: 0.6875rem;
+        font-size: 0.75rem;
         font-weight: 600;
-        text-transform: uppercase;
         white-space: nowrap;
+      }
+      .ph-pill.neutral {
+        background: var(--ph-color-neutral-soft, #f1f3f5);
+        color: var(--ph-color-text-soft, #666);
       }
       .ph-pill.ok {
         background: var(--ph-color-ok-soft, #e6f2e7);
@@ -37,10 +41,6 @@ export type PillTono = 'ok' | 'info' | 'warn' | 'danger' | 'neutral' | 'primario
       .ph-pill.danger {
         background: var(--ph-color-danger-soft, #fbe4e4);
         color: var(--ph-color-danger, #c62828);
-      }
-      .ph-pill.neutral {
-        background: var(--ph-color-neutral-soft, #f1f3f5);
-        color: var(--ph-color-text-soft, #666);
       }
       .ph-pill.primario {
         background: var(--ph-color-primary, #1976d2);
