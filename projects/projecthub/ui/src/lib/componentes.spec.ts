@@ -147,6 +147,23 @@ describe('IntlFormat', () => {
     const intl = TestBed.inject(IntlFormat);
     expect(intl.monto(null)).toBe('-');
     expect(intl.fecha(null)).toBe('-');
+    expect(intl.fechaHora(null)).toBe('-');
+  });
+
+  it('formatea fecha y hora con Intl', () => {
+    const intl = TestBed.inject(IntlFormat);
+    // 2026-03-09 14:05 local (offset fijo para no depender de la zona del runner).
+    const d = new Date(2026, 2, 9, 14, 5, 30);
+    const texto = intl.fechaHora(d);
+    expect(texto).toContain('2026');
+    // es-CO formatea en 12 horas con marcador p. m.
+    expect(texto).toContain('02:05');
+    expect(texto.toLowerCase()).toContain('p. m.');
+  });
+
+  it('acepta cadenas ISO en fechaHora', () => {
+    const intl = TestBed.inject(IntlFormat);
+    expect(intl.fechaHora('no-es-fecha')).toBe('-');
   });
 });
 

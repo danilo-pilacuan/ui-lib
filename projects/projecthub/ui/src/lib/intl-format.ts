@@ -24,6 +24,34 @@ export class IntlFormat {
     }).format(d);
   }
 
+  /** Fecha y hora (momento exacto del registro). */
+  fechaHora(valor: string | Date | null | undefined): string {
+    return this.formatearFechaHora(valor, false);
+  }
+
+  /** Fecha y hora con segundos (bitacora y auditoria). */
+  fechaHoraSegundos(valor: string | Date | null | undefined): string {
+    return this.formatearFechaHora(valor, true);
+  }
+
+  private formatearFechaHora(valor: string | Date | null | undefined, conSegundos: boolean): string {
+    if (!valor) {
+      return '-';
+    }
+    const d = typeof valor === 'string' ? new Date(valor) : valor;
+    if (Number.isNaN(d.getTime())) {
+      return '-';
+    }
+    return new Intl.DateTimeFormat(this.locale, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      ...(conSegundos ? { second: '2-digit' as const } : {}),
+    }).format(d);
+  }
+
   monto(valor: number | null | undefined): string {
     if (valor === null || valor === undefined || Number.isNaN(valor)) {
       return '-';
