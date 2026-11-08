@@ -50,4 +50,18 @@ describe('Pill', () => {
       expect(el.nativeElement.className).toContain(tono);
     }
   });
+
+  it('renderiza el atributo title cuando se pasa un title', async () => {
+    const fixture = await render('Abierto');
+    fixture.componentRef.setInput('title', 'ID tecnico u-1');
+    await fixture.whenStable();
+    const el = fixture.debugElement.query(By.css('.ph-pill'));
+    expect(el.nativeElement.getAttribute('title')).toBe('ID tecnico u-1');
+  });
+
+  it('omite el title cuando no se pasa', async () => {
+    const fixture = await render('Abierto');
+    const el = fixture.debugElement.query(By.css('.ph-pill'));
+    expect(el.nativeElement.getAttribute('title') ?? '').toBe('');
+  });
 });

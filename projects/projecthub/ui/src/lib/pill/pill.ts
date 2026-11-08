@@ -11,7 +11,7 @@ export type PillTono = 'ok' | 'info' | 'warn' | 'danger' | 'neutral' | 'primario
 @Component({
   selector: 'ph-pill',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span class="ph-pill" [class]="tono()">{{ contenido() }}</span>`,
+  template: `<span class="ph-pill" [class]="tono()" [title]="title()">{{ contenido() }}</span>`,
   styles: [
     `
       .ph-pill {
@@ -55,4 +55,7 @@ export class Pill {
 
   /** Texto de la etiqueta. */
   readonly contenido = input.required<string>();
+
+  /** Texto emergente opcional (p. ej. el ID tecnico del patrocinador). */
+  readonly title = input('');
 }
