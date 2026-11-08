@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -15,7 +15,7 @@ import { DialogoConfig, DialogoResultado, PromptDialog } from './prompt-dialog/p
 // Hosts con control real: mat-form-field exige un MatFormFieldControl
 // proyectado (input con matInput o mat-select) en ngDevMode.
 @Component({
-  selector: 'spec-host-input',
+  selector: 'app-spec-host-input',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, MatInputModule],
   template: `
@@ -30,7 +30,7 @@ class HostInput {
 }
 
 @Component({
-  selector: 'spec-host-select',
+  selector: 'app-spec-host-select',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormField, MatSelectModule],
   template: `
@@ -156,7 +156,7 @@ describe('PromptDialog', () => {
   }
 
   @Component({
-    selector: 'spec-host-dialogo',
+    selector: 'app-spec-host-dialogo',
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `<p>host</p>`,
   })

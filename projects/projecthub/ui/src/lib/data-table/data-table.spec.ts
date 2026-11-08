@@ -11,7 +11,7 @@ interface Fila {
 }
 
 @Component({
-  selector: 'test-host',
+  selector: 'app-test-host',
   imports: [DataTable, DataTableColumn],
   template: `
     <ph-data-table [filas]="filas" [cargando]="cargando" [textoVacio]="textoVacio">
