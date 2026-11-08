@@ -293,4 +293,20 @@ describe('PromptDialog', () => {
     expect(overlay().textContent).toContain('valor mayor que 100');
     expect(fixture.componentInstance.resultado).toBeUndefined();
   });
+
+  it('renderiza los campos dentro de mat-form-field con matInput (DEC-005)', async () => {
+    const fixture = abrir({
+      titulo: 'Registrar consumo',
+      campos: [
+        { nombre: 'concepto', etiqueta: 'Concepto', tipo: 'text', requerido: true, textoAyuda: 'Max 80' },
+        { nombre: 'detalle', etiqueta: 'Detalle', tipo: 'textarea' },
+      ],
+    });
+    await fixture.whenStable();
+    expect(overlay().querySelectorAll('mat-form-field').length).toBe(2);
+    expect(overlay().querySelector('input[matinput]')).toBeTruthy();
+    expect(overlay().querySelector('textarea[matinput]')).toBeTruthy();
+    expect(overlay().querySelector('mat-hint')?.textContent).toContain('Max 80');
+    expect(overlay().querySelector('.ph-dialog-req')).toBeTruthy();
+  });
 });

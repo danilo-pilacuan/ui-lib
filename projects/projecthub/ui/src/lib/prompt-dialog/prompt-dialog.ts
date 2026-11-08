@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, Injectable, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 /** Tipos de campo soportados por el dialogo compartido (1.6 del alcance). */
 export type CampoDialogoTipo = 'text' | 'number' | 'date' | 'textarea';
@@ -39,7 +41,7 @@ export type DialogoResultado = Record<string, string> | null;
 @Component({
   selector: 'ph-prompt-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButtonModule, MatDialogModule],
+  imports: [MatButtonModule, MatDialogModule, MatFormFieldModule, MatInputModule],
   template: `
     <h2 mat-dialog-title>{{ data.titulo }}</h2>
     <mat-dialog-content class="ph-dialog-contenido">
@@ -47,14 +49,14 @@ export type DialogoResultado = Record<string, string> | null;
         <p class="ph-dialog-mensaje">{{ data.mensaje }}</p>
       }
       @for (campo of data.campos ?? []; track campo.nombre) {
-        <label class="ph-dialog-campo">
-          <span class="ph-dialog-etiqueta">
-            {{ campo.etiqueta }}@if (campo.requerido) {<span class="ph-dialog-req" aria-hidden="true"> *</span>}
-          </span>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ph-dialog-campo">
+          <mat-label>
+            {{ campo.etiqueta }}@if (campo.requerido) {<span class="ph-dialog-req" aria-hidden="true">*</span>}
+          </mat-label>
           @switch (campo.tipo) {
             @case ('textarea') {
               <textarea
-                class="ph-dialog-input"
+                matInput
                 rows="3"
                 [value]="valor(campo.nombre)"
                 (input)="cambiar(campo, $event)"
@@ -62,7 +64,7 @@ export type DialogoResultado = Record<string, string> | null;
             }
             @default {
               <input
-                class="ph-dialog-input"
+                matInput
                 [type]="campo.tipo"
                 [value]="valor(campo.nombre)"
                 (input)="cambiar(campo, $event)"
@@ -71,9 +73,9 @@ export type DialogoResultado = Record<string, string> | null;
             }
           }
           @if (campo.textoAyuda) {
-            <span class="ph-dialog-ayuda">{{ campo.textoAyuda }}</span>
+            <mat-hint>{{ campo.textoAyuda }}</mat-hint>
           }
-        </label>
+        </mat-form-field>
       }
       @if (errorValidacion(); as err) {
         <p class="ph-dialog-error" role="alert">{{ err }}</p>
@@ -106,33 +108,12 @@ export type DialogoResultado = Record<string, string> | null;
         margin: 0 0 0.75rem;
       }
       .ph-dialog-campo {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
+        display: block;
+        width: 100%;
         margin-bottom: 0.75rem;
-      }
-      .ph-dialog-etiqueta {
-        font-size: var(--ph-font-size-sm, 0.8125rem);
-        color: var(--ph-color-text-soft, #666666);
       }
       .ph-dialog-req {
         color: var(--ph-color-danger, #c62828);
-      }
-      .ph-dialog-input {
-        padding: 0.45rem 0.6rem;
-        border: 1px solid var(--ph-color-border, #d9d9d9);
-        border-radius: var(--ph-radius, 6px);
-        font: inherit;
-        color: inherit;
-        background: var(--ph-color-surface, #ffffff);
-      }
-      .ph-dialog-input:focus {
-        outline: 2px solid var(--ph-color-primary, #1976d2);
-        outline-offset: -1px;
-      }
-      .ph-dialog-ayuda {
-        font-size: var(--ph-font-size-sm, 0.8125rem);
-        color: var(--ph-color-text-soft, #666666);
       }
       .ph-dialog-error {
         margin: 0;
