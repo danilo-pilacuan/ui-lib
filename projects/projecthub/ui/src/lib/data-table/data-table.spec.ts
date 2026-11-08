@@ -14,7 +14,7 @@ interface Fila {
   selector: 'app-test-host',
   imports: [DataTable, DataTableColumn],
   template: `
-    <ph-data-table [filas]="filas" [cargando]="cargando" [textoVacio]="textoVacio">
+    <ph-data-table [filas]="filas" [cargando]="cargando" [textoVacio]="textoVacio" [pie]="pie">
       <ph-data-table-column name="nombre" header="Nombre"></ph-data-table-column>
       <ph-data-table-column name="monto" header="Monto" align="right"></ph-data-table-column>
     </ph-data-table>
@@ -24,12 +24,14 @@ class TestHost {
   filas: Fila[] = [];
   cargando = false;
   textoVacio = 'Sin registros';
+  pie?: Fila;
 }
 
 describe('DataTable', () => {
   async function render(
     filas: Fila[],
     opciones: { cargando?: boolean; textoVacio?: string } = {},
+    pie?: Fila,
   ): Promise<ComponentFixture<TestHost>> {
     await TestBed.configureTestingModule({
       imports: [TestHost],
@@ -38,6 +40,7 @@ describe('DataTable', () => {
     fixture.componentInstance.filas = filas;
     fixture.componentInstance.cargando = opciones.cargando ?? false;
     fixture.componentInstance.textoVacio = opciones.textoVacio ?? 'Sin registros';
+    fixture.componentInstance.pie = pie;
     await fixture.whenStable();
     return fixture;
   }
@@ -68,5 +71,20 @@ describe('DataTable', () => {
     const fixture = await render([], { textoVacio: 'Sin proyectos' });
     const vacio = fixture.debugElement.query(By.css('.ph-table-empty'));
     expect(vacio.nativeElement.textContent.trim()).toBe('Sin proyectos');
+  });
+
+  it('renderiza fila de pie con valores y plantillas de columna', async () => {
+    const fixture = await render(
+      [{ nombre: 'Portal', monto: 1000 }],
+      {},
+      { nombre: 'Total', monto: 1000 },
+    );
+    const pie = fixture.debugElement.queryAll(By.css('tr.mat-mdc-footer-row td'));
+    expect(pie.map((c) => c.nativeElement.textContent.trim())).toEqual(['Total', '1000']);
+  });
+
+  it('oculta el pie cuando no se pasa', async () => {
+    const fixture = await render([{ nombre: 'Portal', monto: 1000 }]);
+    expect(fixture.debugElement.query(By.css('tr.mat-mdc-footer-row'))).toBeNull();
   });
 });

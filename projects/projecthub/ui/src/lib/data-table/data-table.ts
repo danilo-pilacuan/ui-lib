@@ -66,6 +66,31 @@ export interface DataTableFila {
         <tr mat-header-row *matHeaderRowDef="columnasVisibles()"></tr>
         <tr mat-row *matRowDef="let fila; columns: columnasVisibles()"></tr>
 
+        @for (col of columnas(); track col.name()) {
+          <ng-container [matColumnDef]="col.name() + '-pie'">
+            <td
+              mat-footer-cell
+              *matFooterCellDef
+              [class.ph-td-right]="col.align() === 'right'"
+            >
+              @if (pie(); as filaPie) {
+                @if (col.cell(); as tpl) {
+                  <ng-container
+                    [ngTemplateOutlet]="tpl"
+                    [ngTemplateOutletContext]="{ $implicit: filaPie }"
+                  />
+                } @else {
+                  {{ mostrar(filaPie, col.name()) }}
+                }
+              }
+            </td>
+          </ng-container>
+        }
+
+        @if (pie(); as filaPie) {
+          <tr mat-footer-row *matFooterRowDef="columnasDePie()"></tr>
+        }
+
         <tr *matNoDataRow>
           <td class="ph-table-empty" [attr.colspan]="columnasVisibles().length">
             @if (cargando()) {
@@ -111,6 +136,10 @@ export interface DataTableFila {
       .ph-td-right {
         text-align: right;
       }
+      tr.mat-mdc-footer-row td {
+        border-bottom: none;
+        font-weight: 700;
+      }
       .ph-table-empty-row td {
         border-bottom: none;
       }
@@ -127,6 +156,11 @@ export class DataTable {
   readonly filas = input.required<readonly DataTableFila[]>();
   readonly cargando = input(false);
   readonly textoVacio = input('Sin registros');
+  /**
+   * Fila de pie (totales) opcional, renderizada como mat-footer-row. Sus celdas
+   * reutilizan las plantillas #cell de las columnas; undefined oculta el pie.
+   */
+  readonly pie = input<DataTableFila | undefined>(undefined);
   readonly trackBy = input<((indice: number, fila: DataTableFila) => unknown) | undefined>(
     undefined,
   );
@@ -136,6 +170,8 @@ export class DataTable {
   );
 
   protected readonly columnasVisibles = computed(() => this.columnas().map((c) => c.name()));
+
+  protected readonly columnasDePie = computed(() => this.columnas().map((c) => c.name() + '-pie'));
 
   private readonly _columnas = contentChildren(DataTableColumn);
 
